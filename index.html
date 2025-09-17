@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เกมส์ชงชา (เวอร์ชันเบา)</title>
+<title>เกมส์ชงชา (เล่นได้)</title>
 <style>
-  body{margin:0;font-family:system-ui,sans-serif;background:#f7f3ef;color:#222}
-  .container{max-width:900px;margin:16px auto;padding:16px;display:flex;flex-wrap:wrap;gap:16px}
-  .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);flex:1 1 300px}
-  h1{margin:0 0 12px;color:#6b8e23}
-  .tea-option{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #ccc;border-radius:10px;cursor:pointer}
-  .tea-option.selected{border-color:#6b8e23;background:#f0f8e0}
-  .tea-option img{width:50px;height:50px;border-radius:8px;object-fit:cover}
-  .controls label{font-size:13px;color:#666}
-  .controls input[type=range]{width:100%}
-  .btn{padding:8px 12px;border:none;border-radius:8px;background:#6b8e23;color:#fff;cursor:pointer;font-weight:600;margin:4px 0}
-  .btn.secondary{background:#ccc;color:#222}
-  .meter{height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-top:4px}
-  .meter-bar{height:100%;width:0%;background:#6b8e23;transition:width 0.3s}
-  .timer{font-size:32px;font-weight:700;text-align:center;margin-top:8px}
-  .log{font-size:13px;color:#666;max-height:120px;overflow:auto;margin-top:8px;border:1px dashed #ccc;padding:6px;border-radius:8px}
-  @media(max-width:700px){.container{flex-direction:column}}
+body{margin:0;font-family:system-ui,sans-serif;background:#f7f3ef;color:#222}
+.container{max-width:900px;margin:16px auto;padding:16px;display:flex;flex-wrap:wrap;gap:16px}
+.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);flex:1 1 300px}
+h1{margin:0 0 12px;color:#6b8e23}
+.tea-option{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #ccc;border-radius:10px;cursor:pointer}
+.tea-option.selected{border-color:#6b8e23;background:#f0f8e0}
+.tea-option img{width:50px;height:50px;border-radius:8px;object-fit:cover}
+.controls label{font-size:13px;color:#666}
+.controls input[type=range]{width:100%}
+.btn{padding:8px 12px;border:none;border-radius:8px;background:#6b8e23;color:#fff;cursor:pointer;font-weight:600;margin:4px 0}
+.btn.secondary{background:#ccc;color:#222}
+.meter{height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-top:4px}
+.meter-bar{height:100%;width:0%;background:#6b8e23;transition:width 0.1s}
+.timer{font-size:32px;font-weight:700;text-align:center;margin-top:8px}
+.log{font-size:13px;color:#666;max-height:120px;overflow:auto;margin-top:8px;border:1px dashed #ccc;padding:6px;border-radius:8px}
+@media(max-width:700px){.container{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -46,13 +46,10 @@
     <div class="controls">
       <label>อุณหภูมิน้ำ: <span id="tempVal">80</span>°C</label>
       <input type="range" id="tempRange" min="60" max="100" value="80">
-
       <label>ปริมาณน้ำ (ml): <span id="waterVal">200</span>ml</label>
       <input type="range" id="waterRange" min="80" max="400" step="10" value="200">
-
       <label>เวลา steep (วินาที): <span id="timeVal">60</span>s</label>
       <input type="range" id="timeRange" min="10" max="300" step="5" value="60">
-
       <button class="btn" id="startBtn">เริ่มชง</button>
       <button class="btn secondary" id="resetBtn">รีเซ็ต</button>
     </div>
@@ -62,10 +59,8 @@
     <h1>เตาและผลลัพธ์</h1>
     <div>อุณหภูมิ: <span id="displayTemp">80</span>°C</div>
     <div class="meter"><div class="meter-bar" id="tempMeter"></div></div>
-
     <div class="timer" id="timerDisplay">00:00</div>
     <div class="meter"><div class="meter-bar" id="brewProgress"></div></div>
-
     <div>คะแนน: <span id="scoreDisplay">0</span></div>
     <div class="log" id="log"></div>
   </div>
@@ -73,13 +68,8 @@
 
 <script>
 let selectedTea={name:'ชาเขียว',temp:80,time:60};
-let currentTemp=80;
-let water=200;
-let steepTime=60;
-let brewing=false;
-let timer=null;
-let remaining=0;
-let score=0;
+let currentTemp=80, water=200, steepTime=60;
+let brewing=false, timer=null, remaining=0, score=0;
 
 const teaOptions=document.querySelectorAll('.tea-option');
 const tempRange=document.getElementById('tempRange');
@@ -119,49 +109,37 @@ timeRange.addEventListener('input',()=>{steepTime=+timeRange.value; timeVal.text
 
 startBtn.addEventListener('click',()=>{
   if(brewing){ stopBrew('หยุดชง'); return; }
-  brewing=true; remaining=steepTime;
-  timerDisplay.textContent=formatTime(remaining);
-  brewProgress.style.width='0%';
-  startBtn.textContent='หยุดชง';
+  brewing=true; remaining=steepTime; startBtn.textContent='หยุดชง';
   startSteep();
 });
 
 resetBtn.addEventListener('click',()=>{
   stopBrew('รีเซ็ต');
-  score=0;
-  scoreDisplay.textContent=score;
-  currentTemp=selectedTea.temp;
-  steepTime=selectedTea.time;
-  tempRange.value=currentTemp;
-  timeRange.value=steepTime;
-  waterRange.value=200;
-  tempVal.textContent=currentTemp;
-  timeVal.textContent=steepTime;
-  waterVal.textContent=200;
-  updateDisplay();
-  brewProgress.style.width='0%';
-  timerDisplay.textContent='00:00';
-  logEntry('รีเซ็ตเกม');
+  score=0; scoreDisplay.textContent=score;
+  currentTemp=selectedTea.temp; steepTime=selectedTea.time; water=200;
+  tempRange.value=currentTemp; timeRange.value=steepTime; waterRange.value=water;
+  tempVal.textContent=currentTemp; timeVal.textContent=steepTime; waterVal.textContent=water;
+  brewProgress.style.width='0%'; timerDisplay.textContent='00:00';
+  updateDisplay(); logEntry('รีเซ็ตเกม');
 });
 
 function updateDisplay(){
   displayTemp.textContent=currentTemp;
-  let pct=(currentTemp-60)/40*100;
-  tempMeter.style.width=Math.max(0,Math.min(100,pct))+'%';
+  tempMeter.style.width=Math.max(0,Math.min(100,(currentTemp-60)/40*100))+'%';
 }
 
 function startSteep(){
-  const total=steepTime;
-  let elapsed=0;
+  const total=steepTime*1000;
+  let start=Date.now();
   if(timer) clearInterval(timer);
   timer=setInterval(()=>{
-    if(!brewing){clearInterval(timer);return;}
-    elapsed+=0.5;
-    remaining=Math.max(0,total-elapsed);
+    if(!brewing){clearInterval(timer); return;}
+    let elapsed=Date.now()-start;
+    remaining=Math.max(0, steepTime - elapsed/1000);
     timerDisplay.textContent=formatTime(Math.ceil(remaining));
-    brewProgress.style.width=(elapsed/total*100)+'%';
+    brewProgress.style.width=Math.min(100, elapsed/total*100)+'%';
     if(elapsed>=total){clearInterval(timer); brewing=false; finishBrew();}
-  },500);
+  },100);
 }
 
 function finishBrew(){
@@ -169,15 +147,13 @@ function finishBrew(){
   const tempScore=Math.max(0,50-Math.abs(currentTemp-selectedTea.temp));
   const timeScore=Math.max(0,50-Math.abs(steepTime-selectedTea.time)*0.5);
   const roundScore=Math.round(tempScore+timeScore);
-  score+=roundScore;
-  scoreDisplay.textContent=score;
+  score+=roundScore; scoreDisplay.textContent=score;
   logEntry(`ชง ${selectedTea.name}: ได้ ${roundScore} คะแนน`);
 }
 
 function stopBrew(msg){
   if(timer) clearInterval(timer);
-  brewing=false;
-  startBtn.textContent='เริ่มชง';
+  brewing=false; startBtn.textContent='เริ่มชง';
   logEntry(msg);
 }
 
