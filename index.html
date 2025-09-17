@@ -3,172 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เกมส์ชงชา</title>
+<title>เกมส์ชงชาแบบลาก</title>
 <style>
-body{margin:0;font-family:system-ui,sans-serif;background:#f7f3ef;color:#222}
-.container{max-width:900px;margin:16px auto;padding:16px;display:flex;flex-wrap:wrap;gap:16px}
-.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);flex:1 1 300px}
-h1{margin:0 0 12px;color:#6b8e23}
-.tea-option{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #ccc;border-radius:10px;cursor:pointer}
-.tea-option.selected{border-color:#6b8e23;background:#f0f8e0}
-.tea-option img{width:50px;height:50px;border-radius:8px;object-fit:cover}
-.controls label{font-size:13px;color:#666}
-.controls input[type=range]{width:100%}
-.btn{padding:8px 12px;border:none;border-radius:8px;background:#6b8e23;color:#fff;cursor:pointer;font-weight:600;margin:4px 0}
-.btn.secondary{background:#ccc;color:#222}
-.meter{height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-top:4px}
-.meter-bar{height:100%;width:0%;background:#6b8e23;transition:width 0.1s}
-.timer{font-size:32px;font-weight:700;text-align:center;margin-top:8px}
-.log{font-size:13px;color:#666;max-height:120px;overflow:auto;margin-top:8px;border:1px dashed #ccc;padding:6px;border-radius:8px}
-@media(max-width:700px){.container{flex-direction:column}}
+body { margin:0; font-family: system-ui,sans-serif; background:#f7f3ef; display:flex; justify-content:center; align-items:center; height:100vh; }
+.container { text-align:center; }
+h1 { color:#6b8e23; }
+#cup { width:150px; height:200px; border:4px solid #6b8e23; border-radius:20px 20px 10px 10px; margin:20px auto; position:relative; overflow:hidden; background:#fff; }
+#tea { position:absolute; bottom:0; width:100%; height:0%; background:#70a158; transition: height 0.1s; }
+#message { margin:10px; font-weight:bold; }
+#score { font-size:24px; margin:10px; }
+button { padding:10px 20px; border:none; border-radius:8px; background:#6b8e23; color:#fff; cursor:pointer; font-weight:600; margin:5px; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="card">
-    <h1>เลือกชา</h1>
-    <div class="tea-options">
-      <div class="tea-option selected" data-name="ชาเขียว" data-temp="80" data-time="60">
-        <img src="https://via.placeholder.com/50/70a158/ffffff?text=ชาเขียว" alt="ชาเขียว">
-        <div>ชาเขียว (80°C • 60s)</div>
-      </div>
-      <div class="tea-option" data-name="อู่หลง" data-temp="95" data-time="120">
-        <img src="https://via.placeholder.com/50/d67a00/ffffff?text=อู่หลง" alt="อู่หลง">
-        <div>อู่หลง (95°C • 120s)</div>
-      </div>
-      <div class="tea-option" data-name="ชาดำ" data-temp="100" data-time="180">
-        <img src="https://via.placeholder.com/50/b0413e/ffffff?text=ชาดำ" alt="ชาดำ">
-        <div>ชาดำ (100°C • 180s)</div>
-      </div>
-    </div>
-
-    <div class="controls">
-      <label>อุณหภูมิน้ำ: <span id="tempVal">80</span>°C</label>
-      <input type="range" id="tempRange" min="60" max="100" value="80">
-      <label>ปริมาณน้ำ (ml): <span id="waterVal">200</span>ml</label>
-      <input type="range" id="waterRange" min="80" max="400" step="10" value="200">
-      <label>เวลา steep (วินาที): <span id="timeVal">60</span>s</label>
-      <input type="range" id="timeRange" min="10" max="300" step="5" value="60">
-      <button class="btn" id="startBtn">เริ่มชง</button>
-      <button class="btn secondary" id="resetBtn">รีเซ็ต</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h1>ผลลัพธ์</h1>
-    <div>อุณหภูมิ: <span id="displayTemp">80</span>°C</div>
-    <div class="meter"><div class="meter-bar" id="tempMeter"></div></div>
-    <div class="timer" id="timerDisplay">00:00</div>
-    <div class="meter"><div class="meter-bar" id="brewProgress"></div></div>
-    <div>คะแนน: <span id="scoreDisplay">0</span></div>
-    <div class="log" id="log"></div>
-  </div>
+<h1>เกมส์ชงชา</h1>
+<div id="cup"><div id="tea"></div></div>
+<div id="message">ลากขึ้น-ลงเพื่อชงชา!</div>
+<div id="score">คะแนน: 0</div>
+<button id="resetBtn">รีเซ็ต</button>
 </div>
 
 <script>
-let selectedTea={name:'ชาเขียว',temp:80,time:60};
-let currentTemp=80, water=200, steepTime=60;
-let brewing=false, timer=null, remaining=0, score=0;
+let teaLevel=0; // % น้ำชา
+let score=0;
+let lastY=null;
+let totalMoves=0;
+let maxMoves=20; // จำนวนครั้งที่ต้องชง
+let brewing=false;
 
-const teaOptions=document.querySelectorAll('.tea-option');
-const tempRange=document.getElementById('tempRange');
-const waterRange=document.getElementById('waterRange');
-const timeRange=document.getElementById('timeRange');
-const tempVal=document.getElementById('tempVal');
-const waterVal=document.getElementById('waterVal');
-const timeVal=document.getElementById('timeVal');
-const startBtn=document.getElementById('startBtn');
+const cup=document.getElementById('cup');
+const tea=document.getElementById('tea');
+const message=document.getElementById('message');
+const scoreDisplay=document.getElementById('score');
 const resetBtn=document.getElementById('resetBtn');
-const displayTemp=document.getElementById('displayTemp');
-const tempMeter=document.getElementById('tempMeter');
-const timerDisplay=document.getElementById('timerDisplay');
-const brewProgress=document.getElementById('brewProgress');
-const scoreDisplay=document.getElementById('scoreDisplay');
-const log=document.getElementById('log');
 
-teaOptions.forEach(el=>{
-  el.addEventListener('click', ()=>{
-    teaOptions.forEach(x=>x.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedTea={name:el.dataset.name,temp:+el.dataset.temp,time:+el.dataset.time};
-    tempRange.value=selectedTea.temp;
-    timeRange.value=selectedTea.time;
-    tempVal.textContent=selectedTea.temp;
-    timeVal.textContent=selectedTea.time;
-    currentTemp=selectedTea.temp;
-    steepTime=selectedTea.time;
-    updateDisplay();
-    logEntry('เลือกชา: '+selectedTea.name);
-  });
-});
-
-tempRange.addEventListener('input',()=>{currentTemp=+tempRange.value; tempVal.textContent=currentTemp; updateDisplay();});
-waterRange.addEventListener('input',()=>{water=+waterRange.value; waterVal.textContent=water;});
-timeRange.addEventListener('input',()=>{steepTime=+timeRange.value; timeVal.textContent=steepTime;});
-
-startBtn.addEventListener('click',()=>{
-  if(brewing){ stopBrew('หยุดชง'); return; }
-  brewing=true; remaining=steepTime; startBtn.textContent='หยุดชง';
-  startSteep();
-});
-
-resetBtn.addEventListener('click',()=>{
-  stopBrew('รีเซ็ต');
-  score=0; scoreDisplay.textContent=score;
-  currentTemp=selectedTea.temp; steepTime=selectedTea.time; water=200;
-  tempRange.value=currentTemp; timeRange.value=steepTime; waterRange.value=water;
-  tempVal.textContent=currentTemp; timeVal.textContent=steepTime; waterVal.textContent=water;
-  brewProgress.style.width='0%'; timerDisplay.textContent='00:00';
-  updateDisplay(); logEntry('รีเซ็ตเกม');
-});
-
-function updateDisplay(){
-  displayTemp.textContent=currentTemp;
-  tempMeter.style.width=Math.max(0,Math.min(100,(currentTemp-60)/40*100))+'%';
+function startBrew(){
+  brewing=true;
+  teaLevel=0;
+  score=0;
+  totalMoves=0;
+  tea.style.height='0%';
+  scoreDisplay.textContent='คะแนน: 0';
+  message.textContent='ลากขึ้น-ลงเพื่อชงชา!';
 }
 
-function startSteep(){
-  const total=steepTime*1000;
-  let start=Date.now();
-  if(timer) clearInterval(timer);
-  timer=setInterval(()=>{
-    if(!brewing){clearInterval(timer); return;}
-    let elapsed=Date.now()-start;
-    remaining=Math.max(0, steepTime - elapsed/1000);
-    timerDisplay.textContent=formatTime(Math.ceil(remaining));
-    brewProgress.style.width=Math.min(100, elapsed/total*100)+'%';
-    if(elapsed>=total){clearInterval(timer); brewing=false; finishBrew();}
-  },100);
+function updateTea(delta){
+  if(!brewing) return;
+  teaLevel=Math.min(100, teaLevel + delta);
+  tea.style.height=teaLevel + '%';
+  score += Math.round(delta*2);
+  scoreDisplay.textContent='คะแนน: '+score;
+  totalMoves++;
+  if(totalMoves>=maxMoves){
+    brewing=false;
+    message.textContent='เสร็จแล้ว! คะแนนสุดท้าย: '+score;
+  }
 }
 
-function finishBrew(){
-  startBtn.textContent='เริ่มชง';
-  const tempScore=Math.max(0,50-Math.abs(currentTemp-selectedTea.temp));
-  const timeScore=Math.max(0,50-Math.abs(steepTime-selectedTea.time)*0.5);
-  const roundScore=Math.round(tempScore+timeScore);
-  score+=roundScore; scoreDisplay.textContent=score;
-  logEntry(`ชง ${selectedTea.name}: ได้ ${roundScore} คะแนน`);
+function handleMove(y){
+  if(lastY===null){ lastY=y; return; }
+  const delta = Math.abs(y - lastY);
+  lastY=y;
+  if(delta>5){ // กำหนด threshold
+    updateTea(delta);
+  }
 }
 
-function stopBrew(msg){
-  if(timer) clearInterval(timer);
-  brewing=false; startBtn.textContent='เริ่มชง';
-  logEntry(msg);
-}
+cup.addEventListener('mousedown', e=>{ lastY=e.clientY; startBrew(); });
+cup.addEventListener('mousemove', e=>{ if(e.buttons) handleMove(e.clientY); });
+cup.addEventListener('mouseup', e=>{ lastY=null; });
 
-function logEntry(text){
-  const t=new Date().toLocaleTimeString();
-  const node=document.createElement('div'); node.textContent=`[${t}] ${text}`;
-  log.prepend(node);
-}
+cup.addEventListener('touchstart', e=>{ lastY=e.touches[0].clientY; startBrew(); });
+cup.addEventListener('touchmove', e=>{ handleMove(e.touches[0].clientY); });
 
-function formatTime(sec){ const m=Math.floor(sec/60); const s=Math.floor(sec%60); return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+resetBtn.addEventListener('click', startBrew);
 
-updateDisplay();
-logEntry('พร้อมเริ่มเล่น');
+startBrew();
 </script>
 
 </body>
 </html>
-
