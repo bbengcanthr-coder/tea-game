@@ -3,84 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เกมส์ชงชาแบบลาก</title>
+<title>Rhythm ชงชา</title>
 <style>
-body { margin:0; font-family: system-ui,sans-serif; background:#f7f3ef; display:flex; justify-content:center; align-items:center; height:100vh; }
-.container { text-align:center; }
+body { margin:0; font-family: system-ui,sans-serif; background:#f7f3ef; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
 h1 { color:#6b8e23; }
 #cup { width:150px; height:200px; border:4px solid #6b8e23; border-radius:20px 20px 10px 10px; margin:20px auto; position:relative; overflow:hidden; background:#fff; }
 #tea { position:absolute; bottom:0; width:100%; height:0%; background:#70a158; transition: height 0.1s; }
-#message { margin:10px; font-weight:bold; }
 #score { font-size:24px; margin:10px; }
+#barContainer { width:200px; height:20px; background:#ccc; border-radius:10px; overflow:hidden; margin:10px auto; position:relative; }
+#movingBar { width:20px; height:100%; background:#6b8e23; position:absolute; left:0; top:0; }
+#message { font-weight:bold; margin:10px; }
 button { padding:10px 20px; border:none; border-radius:8px; background:#6b8e23; color:#fff; cursor:pointer; font-weight:600; margin:5px; }
 </style>
 </head>
 <body>
 
-<div class="container">
-<h1>เกมส์ชงชา</h1>
+<h1>Rhythm ชงชา</h1>
 <div id="cup"><div id="tea"></div></div>
-<div id="message">ลากขึ้น-ลงเพื่อชงชา!</div>
+<div id="barContainer"><div id="movingBar"></div></div>
 <div id="score">คะแนน: 0</div>
+<div id="message">กด SPACE หรือแตะตามจังหวะ!</div>
 <button id="resetBtn">รีเซ็ต</button>
-</div>
 
 <script>
-let teaLevel=0; // % น้ำชา
 let score=0;
-let lastY=null;
-let totalMoves=0;
-let maxMoves=20; // จำนวนครั้งที่ต้องชง
-let brewing=false;
+let teaLevel=0;
+let combo=0;
+let running=false;
 
-const cup=document.getElementById('cup');
 const tea=document.getElementById('tea');
-const message=document.getElementById('message');
 const scoreDisplay=document.getElementById('score');
+const message=document.getElementById('message');
+const movingBar=document.getElementById('movingBar');
+const barContainer=document.getElementById('barContainer');
 const resetBtn=document.getElementById('resetBtn');
 
-function startBrew(){
-  brewing=true;
-  teaLevel=0;
-  score=0;
-  totalMoves=0;
+let barPos=0;
+let barSpeed=2; // pixels per frame
+
+function resetGame(){
+  score=0; teaLevel=0; combo=0;
   tea.style.height='0%';
   scoreDisplay.textContent='คะแนน: 0';
-  message.textContent='ลากขึ้น-ลงเพื่อชงชา!';
+  message.textContent='กด SPACE หรือแตะตามจังหวะ!';
+  barPos=0;
+  running=true;
+  requestAnimationFrame(moveBar);
 }
 
-function updateTea(delta){
-  if(!brewing) return;
-  teaLevel=Math.min(100, teaLevel + delta);
-  tea.style.height=teaLevel + '%';
-  score += Math.round(delta*2);
+function moveBar(){
+  if(!running) return;
+  barPos += barSpeed;
+  if(barPos>barContainer.offsetWidth-20 || barPos<0){
+    barSpeed*=-1;
+  }
+  movingBar.style.left=barPos+'px';
+  requestAnimationFrame(moveBar);
+}
+
+function handleHit(){
+  if(!running) return;
+  const barCenter=barPos+10;
+  const containerCenter=barContainer.offsetWidth/2;
+  const diff=Math.abs(barCenter-containerCenter);
+  if(diff<20){
+    // perfect
+    score += 10 + combo*2;
+    combo++;
+    teaLevel = Math.min(100, teaLevel + 5);
+    tea.style.height=teaLevel+'%';
+    message.textContent='Perfect! Combo: '+combo;
+  } else if(diff<40){
+    score +=5;
+    combo=0;
+    teaLevel = Math.min(100, teaLevel + 2);
+    tea.style.height=teaLevel+'%';
+    message.textContent='Good!';
+  } else {
+    score -=2;
+    combo=0;
+    message.textContent='Miss!';
+  }
   scoreDisplay.textContent='คะแนน: '+score;
-  totalMoves++;
-  if(totalMoves>=maxMoves){
-    brewing=false;
-    message.textContent='เสร็จแล้ว! คะแนนสุดท้าย: '+score;
+  if(teaLevel>=100){
+    running=false;
+    message.textContent='ชงเสร็จ! คะแนนสุดท้าย: '+score;
   }
 }
 
-function handleMove(y){
-  if(lastY===null){ lastY=y; return; }
-  const delta = Math.abs(y - lastY);
-  lastY=y;
-  if(delta>5){ // กำหนด threshold
-    updateTea(delta);
-  }
-}
+document.addEventListener('keydown', e=>{ if(e.code==='Space') handleHit(); });
+document.addEventListener('touchstart', e=>{ handleHit(); });
 
-cup.addEventListener('mousedown', e=>{ lastY=e.clientY; startBrew(); });
-cup.addEventListener('mousemove', e=>{ if(e.buttons) handleMove(e.clientY); });
-cup.addEventListener('mouseup', e=>{ lastY=null; });
+resetBtn.addEventListener('click', resetGame);
 
-cup.addEventListener('touchstart', e=>{ lastY=e.touches[0].clientY; startBrew(); });
-cup.addEventListener('touchmove', e=>{ handleMove(e.touches[0].clientY); });
-
-resetBtn.addEventListener('click', startBrew);
-
-startBrew();
+resetGame();
 </script>
 
 </body>
