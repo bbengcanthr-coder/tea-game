@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>เกมส์ชงชา</title>
+<style>
+  :root{
+    --bg:#f7f3ef;
+    --card:#fff;
+    --accent:#6b8e23;
+    --muted:#666;
+    --glass: rgba(255,255,255,0.6);
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai UI",sans-serif;background:linear-gradient(180deg,#f7f3ef,#efe9dd);color:#222}
+  .wrap{max-width:980px;margin:18px auto;padding:18px;display:grid;grid-template-columns:360px 1fr;gap:18px}
+  .card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 6px 18px rgba(20,20,20,0.08)}
+  h1{margin:0 0 8px;font-size:20px;color:var(--accent)}
+  p.small{margin:6px 0;color:var(--muted);font-size:13px}
+  .left .options{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .tea-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid #eee;cursor:pointer}
+  .tea-item.selected{box-shadow:inset 0 0 0 2px rgba(107,142,35,0.12);border-color:var(--accent)}
+  .tea-item img{width:54px;height:54px;border-radius:8px;object-fit:cover;background:linear-gradient(90deg,#fff,#f0f0f0);border:1px solid #ddd}
+  .tea-meta{flex:1}
+  .tea-meta b{display:block}
+  .controls{margin-top:12px;display:grid;gap:10px}
+  label{font-size:13px;color:var(--muted)}
+  input[type=range]{width:100%}
+  .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600}
+  .btn.secondary{background:#ccc;color:#222}
+  .big{font-size:18px;padding:12px 16px}
+  .right{display:flex;flex-direction:column;gap:12px}
+  .kettle{height:180px;border-radius:12px;background:linear-gradient(180deg,#fff,#fff);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 8px 20px rgba(30,30,30,0.06)}
+  .kettle .temp{font-size:34px;font-weight:700;color:var(--accent)}
+  .meter{width:100%;height:14px;background:#eee;border-radius:10px;overflow:hidden;margin-top:10px}
+  .meter > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#9dbf5b);transition:width 0.3s}
+  .steps{display:flex;gap:8px;flex-wrap:wrap}
+  .step{padding:8px 10px;background:var(--glass);border-radius:8px;font-size:13px}
+  .timer{font-size:44px;font-weight:700;text-align:center;margin-top:6px}
+  .progress-circle{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--accent) 0% , #eee 0%);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent)}
+  .score{font-size:20px;font-weight:700;color:#b5651d}
+  footer.note{font-size:13px;color:var(--muted);text-align:center;padding:8px}
+  /* responsive */
+  @media (max-width:860px){
+    .wrap{grid-template-columns:1fr; padding:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card left">
+    <h1>เกมส์ชงชา — เตรียมชง</h1>
+    <p class="small">เลือกใบชา ตั้งอุณหภูมิ ใส่น้ำ แล้วกดเริ่มชง</p>
+
+    <div class="options">
+      <div class="tea-item selected" data-name="ชาเขียว" data-temp="80" data-time="60" data-type="green">
+        <img alt="green" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23e8f5e9'/><text x='50%' y='55%' font-size='20' text-anchor='middle' fill='%2370a158'>ชาเขียว</text></svg>">
+        <div class="tea-meta"><b>ชาเขียว</b><span class="small">อุณหภูมิเป้าหมาย 80°C • เวลา 60 วินาที</span></div>
+      </div>
+
+      <div class="tea-item" data-name="ชาโอolong" data-temp="95" data-time="120" data-type="oolong">
+        <img alt="oolong" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fff3e0'/><text x='50%' y='55%' font-size='20' text-anchor='middle' fill='%23d67a00'>อู่หลง</text></svg>">
+        <div class="tea-meta"><b>อู่หลง</b><span class="small">อุณหภูมิเป้าหมาย 95°C • เวลา 120 วินาที</span></div>
+      </div>
+
+      <div class="tea-item" data-name="ชาดำ" data-temp="100" data-time="180" data-type="black">
+        <img alt="black" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23fbe9e7'/><text x='50%' y='55%' font-size='20' text-anchor='middle' fill='%23b0413e'>ชาดำ</text></svg>">
+        <div class="tea-meta"><b>ชาดำ</b><span class="small">อุณหภูมิเป้าหมาย 100°C • เวลา 180 วินาที</span></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div>
+        <label>อุณหภูมิน้ำ: <span id="tempVal">80</span>°C</label>
+        <input id="tempRange" type="range" min="60" max="100" step="1" value="80">
+      </div>
+
+      <div>
+        <label>ปริมาณน้ำ (ml): <span id="waterVal">200</span> ml</label>
+        <input id="waterRange" type="range" min="80" max="400" step="10" value="200">
+      </div>
+
+      <div>
+        <label>เวลา steep (วินาที): <span id="timeVal">60</span> s</label>
+        <input id="timeRange" type="range" min="10" max="300" step="5" value="60">
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn big" id="startBtn">เริ่มชง</button>
+        <button class="btn secondary big" id="resetBtn">รีเซ็ต</button>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+        <button class="btn" id="pourBtn">รินชา</button>
+        <button class="btn secondary" id="milkBtn">เติมนม</button>
+        <button class="btn secondary" id="sugarBtn">เติมน้ำตาล</button>
+      </div>
+
+      <p class="small">เคล็ดลับ: เลือกใบชาที่ใกล้เคียงกับอุณหภูมิและเวลาเพื่อได้คะแนนสูงสุด</p>
+    </div>
+  </div>
+
+  <div class="card right">
+    <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+      <div>
+        <div class="kettle">
+          <div style="text-align:center">
+            <div class="temp" id="displayTemp">80°C</div>
+            <div class="meter"><i id="tempMeter" style="width:60%"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="steps">
+            <div class="step" id="stepSelect">เลือกชา</div>
+            <div class="step" id="stepHeat">อุ่นน้ำ</div>
+            <div class="step" id="stepSteep">ชง</div>
+            <div class="step" id="stepServe">เสิร์ฟ</div>
+          </div>
+          <div style="text-align:right">
+            <div class="score" id="scoreDisplay">คะแนน: 0</div>
+            <div class="small" id="statusText">สถานะ: พร้อม</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+          <div class="progress-circle" id="circle">0%</div>
+          <div style="flex:1">
+            <div class="timer" id="timerDisplay">00:00</div>
+            <div style="height:8px;background:#eee;border-radius:6px;overflow:hidden;margin-top:8px">
+              <div id="brewProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#f0c36d,#f79d3d);"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">บันทึกการชงล่าสุด</h3>
+          <div id="log" style="font-size:13px;color:var(--muted);max-height:120px;overflow:auto;padding:8px;border-radius:8px;background:#fbfbfb;border:1px dashed #eee"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="note">ออกแบบโดย: เกมส์ชงชา (ตัวอย่าง) — ปรับแต่งเพิ่มฟีเจอร์ได้ตามต้องการ</footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  // state
+  let selectedTea = {name:'ชาเขียว',temp:80,time:60,type:'green'};
+  let currentTemp = selectedTea.temp;
+  let water = 200;
+  let steepTime = selectedTea.time;
+  let brewing = false;
+  let timer = null;
+  let remaining = 0;
+  let score = 0;
+
+  // elements
+  const teaItems = document.querySelectorAll('.tea-item');
+  const tempRange = document.getElementById('tempRange');
+  const timeRange = document.getElementById('timeRange');
+  const waterRange = document.getElementById('waterRange');
+  const tempVal = document.getElementById('tempVal');
+  const timeVal = document.getElementById('timeVal');
+  const waterVal = document.getElementById('waterVal');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const displayTemp = document.getElementById('displayTemp');
+  const tempMeter = document.getElementById('tempMeter');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const brewProgress = document.getElementById('brewProgress');
+  const circle = document.getElementById('circle');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const statusText = document.getElementById('statusText');
+  const log = document.getElementById('log');
+  const pourBtn = document.getElementById('pourBtn');
+  const milkBtn = document.getElementById('milkBtn');
+  const sugarBtn = document.getElementById('sugarBtn');
+
+  // helper sound (WebAudio)
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = AudioCtx ? new AudioCtx() : null;
+  function beep(freq=440,dur=0.08){ if(!audioCtx) return; let o=audioCtx.createOscillator(); let g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type='sine'; o.frequency.value=freq; g.gain.value=0.02; o.start(); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur); setTimeout(()=>o.stop(),dur*1000+20); }
+
+  // tea selection
+  teaItems.forEach(it=>{
+    it.addEventListener('click', ()=> {
+      teaItems.forEach(x=>x.classList.remove('selected'));
+      it.classList.add('selected');
+      selectedTea = {
+        name: it.dataset.name,
+        temp: parseInt(it.dataset.temp),
+        time: parseInt(it.dataset.time),
+        type: it.dataset.type
+      };
+      // set ranges to tea defaults
+      tempRange.value = selectedTea.temp;
+      timeRange.value = selectedTea.time;
+      tempVal.textContent = selectedTea.temp;
+      timeVal.textContent = selectedTea.time;
+      currentTemp = selectedTea.temp;
+      updateDisplayTemp();
+      statusText.textContent = 'เลือก: ' + selectedTea.name;
+      beep(880,0.06);
+    });
+  });
+
+  // ranges
+  tempRange.addEventListener('input', ()=> {
+    currentTemp = parseInt(tempRange.value);
+    tempVal.textContent = currentTemp;
+    updateDisplayTemp();
+  });
+  waterRange.addEventListener('input', ()=> {
+    water = parseInt(waterRange.value);
+    waterVal.textContent = water;
+  });
+  timeRange.addEventListener('input', ()=> {
+    steepTime = parseInt(timeRange.value);
+    timeVal.textContent = steepTime;
+  });
+
+  function updateDisplayTemp(){
+    displayTemp.textContent = currentTemp + '°C';
+    // meter width based on 60-100
+    const pct = (currentTemp - 60) / (40) * 100;
+    tempMeter.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  }
+
+  // start brewing
+  startBtn.addEventListener('click', ()=>{
+    if(brewing){ // pause/stop
+      stopBrew('ยกเลิกการชง');
+      return;
+    }
+    brewing = true;
+    remaining = steepTime;
+    timerDisplay.textContent = formatTime(remaining);
+    brewProgress.style.width = '0%';
+    circle.textContent = '0%';
+    statusText.textContent = 'กำลังชง: ' + selectedTea.name;
+    startBtn.textContent = 'หยุดชง';
+    // simulate heating time: if temp under ideal, heat up slowly until target
+    simulateHeatThenSteep();
+  });
+
+  function simulateHeatThenSteep(){
+    // simple simulation: if currentTemp >= target, start immediately; otherwise "heat" then start
+    const target = selectedTea.temp;
+    if(currentTemp >= target - 2){
+      beep(660,0.08);
+      startSteep();
+      return;
+    }
+    statusText.textContent = 'กำลังอุ่นน้ำ...';
+    // ramp up temperature every 300ms
+    let heatInt = setInterval(()=>{
+      if(currentTemp < target){ currentTemp += Math.ceil((target - currentTemp)/6); updateDisplayTemp(); }
+      if(currentTemp >= target){ clearInterval(heatInt); beep(660,0.08); startSteep(); }
+    }, 300);
+  }
+
+  function startSteep(){
+    statusText.textContent = 'ชงอยู่ ('+selectedTea.name+')';
+    beep(880,0.06);
+    const total = steepTime;
+    let elapsed = 0;
+    // clear any existing timer
+    if(timer) clearInterval(timer);
+    timer = setInterval(()=>{
+      if(!brewing){ clearInterval(timer); return; }
+      elapsed++;
+      remaining = Math.max(0, total - elapsed);
+      timerDisplay.textContent = formatTime(remaining);
+      const pct = elapsed/total*100;
+      brewProgress.style.width = pct+'%';
+      circle.style.background = `conic-gradient(var(--accent) ${pct}%, #eee ${pct}%)`;
+      circle.textContent = Math.floor(pct) + '%';
+      if(elapsed >= total){ // done
+        clearInterval(timer);
+        brewing = false;
+        finishBrew();
+      }
+    }, 1000);
+  }
+
+  function finishBrew(){
+    startBtn.textContent = 'เริ่มชง';
+    statusText.textContent = 'ชงเสร็จแล้ว! พร้อมเสิร์ฟ';
+    beep(1000,0.12);
+    // scoring: compare currentTemp to target and time to ideal (ideal is selectedTea.time)
+    const tempScore = Math.max(0, 50 - Math.abs(currentTemp - selectedTea.temp)); // up to 50
+    const timeScore = Math.max(0, 50 - Math.abs(steepTime - selectedTea.time) * 0.5); // up to 50
+    const roundScore = Math.round(tempScore + timeScore);
+    score += roundScore;
+    scoreDisplay.textContent = 'คะแนน: ' + score;
+    logEntry(`ชง ${selectedTea.name}: อุณหภูมิ ${currentTemp}°C (เป้า ${selectedTea.temp}°C), เวลา ${steepTime}s (เป้า ${selectedTea.time}s) → ได้ ${roundScore} คะแนน`);
+  }
+
+  function stopBrew(msg){
+    if(timer) clearInterval(timer);
+    brewing = false;
+    startBtn.textContent = 'เริ่มชง';
+    statusText.textContent = msg || 'หยุดชง';
+    beep(220,0.06);
+  }
+
+  resetBtn.addEventListener('click', ()=>{
+    stopBrew('รีเซ็ตเรียบร้อย');
+    score = 0;
+    scoreDisplay.textContent = 'คะแนน: 0';
+    // reset UI to selected tea defaults
+    tempRange.value = selectedTea.temp;
+    timeRange.value = selectedTea.time;
+    waterRange.value = 200;
+    tempVal.textContent = selectedTea.temp;
+    timeVal.textContent = selectedTea.time;
+    waterVal.textContent = 200;
+    currentTemp = selectedTea.temp;
+    steepTime = selectedTea.time;
+    updateDisplayTemp();
+    brewProgress.style.width = '0%';
+    circle.style.background = `conic-gradient(var(--accent) 0%, #eee 0%)`;
+    circle.textContent = '0%';
+    timerDisplay.textContent = '00:00';
+    logEntry('รีเซ็ตเกม');
+  });
+
+  pourBtn.addEventListener('click', ()=>{
+    logEntry('รินชา กาแฟ (เสิร์ฟ)');
+    beep(700,0.08);
+  });
+  milkBtn.addEventListener('click', ()=>{ logEntry('เติมนม'); beep(520,0.06); });
+  sugarBtn.addEventListener('click', ()=>{ logEntry('เติมน้ำตาล'); beep(420,0.06); });
+
+  function logEntry(text){
+    const time = new Date().toLocaleTimeString();
+    const node = document.createElement('div');
+    node.textContent = `[${time}] ${text}`;
+    log.prepend(node);
+  }
+
+  function formatTime(sec){
+    const s = sec % 60;
+    const m = Math.floor(sec/60);
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+
+  // init display values
+  tempVal.textContent = currentTemp;
+  timeVal.textContent = steepTime;
+  waterVal.textContent = water;
+  updateDisplayTemp();
+  timerDisplay.textContent = '00:00';
+  scoreDisplay.textContent = 'คะแนน: 0';
+  logEntry('พร้อมเริ่มเล่น');
+})();
+</script>
+</body>
+</html>
